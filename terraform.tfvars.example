@@ -1,0 +1,25 @@
+# ==============================================================================
+# EXAMPLE TERRAFORM VARIABLES (terraform.tfvars.example)
+# ==============================================================================
+# Copy this file to "terraform.tfvars" and customize the values before running:
+#   cp terraform.tfvars.example terraform.tfvars
+# ==============================================================================
+
+# AWS region to deploy infrastructure into
+aws_region = "eu-north-1"
+
+# Environment name for resource tagging and naming
+environment = "dev"
+
+# Project identifier used as a prefix for naming resources
+project_name = "myapp"
+
+# Primary IP address range for the VPC
+vpc_cidr = "10.0.0.0/16"
+
+# Prefix used to generate a globally unique S3 bucket name
+bucket_prefix = "myapp-storage"
+
+# Number of ECS Fargate tasks to run concurrently
+ecs_desired_count = 2
+
