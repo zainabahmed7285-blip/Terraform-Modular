@@ -22,6 +22,17 @@ variable "desired_count" {
   type        = number
 }
 
+variable "container_image" {
+  description = "Docker image URI (e.g. from ECR) for the ECS task definition"
+  type        = string
+}
+
+variable "container_port" {
+  description = "Port exposed by the container and opened in the security group"
+  type        = number
+  default     = 5000
+}
+
 variable "environment" {
   description = "Deployment environment name for tagging"
   type        = string

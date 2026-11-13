@@ -4,8 +4,8 @@
 # This module creates:
 # 1. An Amazon ECS cluster
 # 2. An Amazon CloudWatch log group for container stdout/stderr logs
-# 3. A Security Group allowing inbound HTTP traffic on port 80 and all outbound
-# 4. An ECS Fargate Task Definition (256 CPU, 512 RAM, public nginx image, port 80)
+# 3. A Security Group allowing inbound traffic on the container port and all outbound
+# 4. An ECS Fargate Task Definition (256 CPU, 512 RAM, custom container image)
 # 5. An ECS Fargate Service configured with assign_public_ip in the public subnets
 # ==============================================================================
 
@@ -38,14 +38,14 @@ resource "aws_cloudwatch_log_group" "ecs" {
 # 3. Security Group for the ECS service
 resource "aws_security_group" "ecs_service" {
   name        = "${var.project_name}-${var.environment}-ecs-sg"
-  description = "Security group for ECS tasks allowing inbound HTTP port 80"
+  description = "Security group for ECS tasks allowing inbound traffic on container port"
   vpc_id      = var.vpc_id
 
-  # Allow inbound HTTP requests on port 80 from the internet
+  # Allow inbound HTTP requests on the configured container port from the internet
   ingress {
-    description = "Allow inbound HTTP from anywhere"
-    from_port   = 80
-    to_port     = 80
+    description = "Allow inbound traffic on container port from anywhere"
+    from_port   = var.container_port
+    to_port     = var.container_port
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -66,9 +66,9 @@ resource "aws_security_group" "ecs_service" {
   }
 }
 
-# 4. Fargate Task Definition (256 CPU, 512 MB Memory, Nginx container on port 80)
+# 4. Fargate Task Definition (256 CPU, 512 MB Memory)
 resource "aws_ecs_task_definition" "main" {
-  family                   = "${var.project_name}-${var.environment}-nginx"
+  family                   = "${var.project_name}-${var.environment}-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
@@ -77,13 +77,13 @@ resource "aws_ecs_task_definition" "main" {
 
   container_definitions = jsonencode([
     {
-      name      = "nginx"
-      image     = "public.ecr.aws/nginx/nginx:latest"
+      name      = "app"
+      image     = var.container_image
       essential = true
       portMappings = [
         {
-          containerPort = 80
-          hostPort      = 80
+          containerPort = var.container_port
+          hostPort      = var.container_port
           protocol      = "tcp"
         }
       ]

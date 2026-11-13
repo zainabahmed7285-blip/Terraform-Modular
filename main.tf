@@ -6,7 +6,7 @@
 # - VPC with 3 public subnets across 3 Availability Zones
 # - S3 private bucket with unique name
 # - IAM execution role for ECS tasks
-# - ECS cluster and Fargate service running Nginx
+# - ECS cluster and Fargate service running containerized application
 # ==============================================================================
 
 terraform {
@@ -63,6 +63,8 @@ module "ecs" {
   subnet_ids         = module.vpc.subnet_ids
   execution_role_arn = module.iam.execution_role_arn
   desired_count      = var.ecs_desired_count
+  container_image    = var.container_image
+  container_port     = var.container_port
   environment        = var.environment
   project_name       = var.project_name
 }

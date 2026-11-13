@@ -38,3 +38,14 @@ variable "ecs_desired_count" {
   default     = 2
 }
 
+variable "container_image" {
+  description = "Docker image URI (e.g. from ECR) to run in the ECS task"
+  type        = string
+}
+
+variable "container_port" {
+  description = "Port exposed by the container and opened in the security group"
+  type        = number
+  default     = 5000
+}
+

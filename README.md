@@ -39,8 +39,8 @@ A beginner-friendly, production-style modular Terraform project targeting Amazon
 4. **Compute & Containers (`modules/ecs`)**:
    - 1 Amazon ECS Cluster.
    - 1 Amazon CloudWatch Log Group for container logs.
-   - 1 Security Group allowing inbound HTTP traffic on port 80 and unrestricted egress.
-   - 1 ECS Fargate Task Definition (256 CPU, 512 MB RAM, public Nginx image).
+   - 1 Security Group allowing inbound traffic on `container_port` (default `5000`) and unrestricted egress.
+   - 1 ECS Fargate Task Definition (256 CPU, 512 MB RAM, custom container image from ECR).
    - 1 ECS Fargate Service running `desired_count` instances with public IPs assigned.
 
 ---
@@ -97,6 +97,8 @@ project_name      = "demo-project"
 vpc_cidr          = "10.0.0.0/16"
 bucket_prefix     = "demo-storage"
 ecs_desired_count = 2
+container_image   = "<account-id>.dkr.ecr.eu-north-1.amazonaws.com/study-planner:latest"
+container_port    = 5000
 ```
 
 ### 3. Initialize & Validate

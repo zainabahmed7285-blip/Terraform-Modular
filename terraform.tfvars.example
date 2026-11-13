@@ -23,3 +23,9 @@ bucket_prefix = "myapp-storage"
 # Number of ECS Fargate tasks to run concurrently
 ecs_desired_count = 2
 
+# Docker image URI from ECR
+container_image = "<account-id>.dkr.ecr.eu-north-1.amazonaws.com/study-planner:latest"
+
+# Port exposed by the application container (optional, defaults to 5000)
+container_port = 5000
+
