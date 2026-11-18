@@ -37,3 +37,22 @@ resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# 3. Policy granting ECS task execution role permission to read the RDS secret from Secrets Manager
+resource "aws_iam_role_policy" "ecs_secrets_policy" {
+  name = "${var.project_name}-${var.environment}-ecs-secrets-policy"
+  role = aws_iam_role.ecs_execution_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = var.secret_arn
+      }
+    ]
+  })
+}
+

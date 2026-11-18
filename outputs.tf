@@ -29,3 +29,12 @@ output "ecs_service_name" {
   value       = module.ecs.service_name
 }
 
+output "db_endpoint" {
+  description = "The connection endpoint address of the RDS PostgreSQL database"
+  value       = module.rds.db_address
+}
+
+output "db_name" {
+  description = "The RDS database name"
+  value       = module.rds.db_name
+}

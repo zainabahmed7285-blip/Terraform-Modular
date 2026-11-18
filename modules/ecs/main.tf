@@ -4,9 +4,10 @@
 # This module creates:
 # 1. An Amazon ECS cluster
 # 2. An Amazon CloudWatch log group for container stdout/stderr logs
-# 3. A Security Group allowing inbound traffic on the container port and all outbound
-# 4. An ECS Fargate Task Definition (256 CPU, 512 RAM, custom container image)
-# 5. An ECS Fargate Service configured with assign_public_ip in the public subnets
+# 3. An ECS Fargate Task Definition configured with container image, port,
+#    database environment variables (DB_HOST, DB_PORT, DB_NAME), and database
+#    secrets (DB_USER, DB_PASSWORD) retrieved from AWS Secrets Manager
+# 4. An ECS Fargate Service running in public subnets with app_sg_id security group
 # ==============================================================================
 
 # Fetch current AWS region dynamically for CloudWatch log configuration
@@ -35,38 +36,7 @@ resource "aws_cloudwatch_log_group" "ecs" {
   }
 }
 
-# 3. Security Group for the ECS service
-resource "aws_security_group" "ecs_service" {
-  name        = "${var.project_name}-${var.environment}-ecs-sg"
-  description = "Security group for ECS tasks allowing inbound traffic on container port"
-  vpc_id      = var.vpc_id
-
-  # Allow inbound HTTP requests on the configured container port from the internet
-  ingress {
-    description = "Allow inbound traffic on container port from anywhere"
-    from_port   = var.container_port
-    to_port     = var.container_port
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow all outbound traffic so containers can pull images and send logs
-  egress {
-    description = "Allow all outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-ecs-sg"
-    Environment = var.environment
-    Project     = var.project_name
-  }
-}
-
-# 4. Fargate Task Definition (256 CPU, 512 MB Memory)
+# 3. Fargate Task Definition (256 CPU, 512 MB Memory)
 resource "aws_ecs_task_definition" "main" {
   family                   = "${var.project_name}-${var.environment}-task"
   network_mode             = "awsvpc"
@@ -87,6 +57,30 @@ resource "aws_ecs_task_definition" "main" {
           protocol      = "tcp"
         }
       ]
+      environment = [
+        {
+          name  = "DB_HOST"
+          value = var.db_host
+        },
+        {
+          name  = "DB_PORT"
+          value = tostring(var.db_port)
+        },
+        {
+          name  = "DB_NAME"
+          value = var.db_name
+        }
+      ]
+      secrets = [
+        {
+          name      = "DB_USER"
+          valueFrom = "${var.db_secret_arn}:username::"
+        },
+        {
+          name      = "DB_PASSWORD"
+          valueFrom = "${var.db_secret_arn}:password::"
+        }
+      ]
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -105,7 +99,7 @@ resource "aws_ecs_task_definition" "main" {
   }
 }
 
-# 5. ECS Fargate Service
+# 4. ECS Fargate Service
 resource "aws_ecs_service" "main" {
   name            = "${var.project_name}-${var.environment}-service"
   cluster         = aws_ecs_cluster.main.id
@@ -115,7 +109,7 @@ resource "aws_ecs_service" "main" {
 
   network_configuration {
     subnets          = var.subnet_ids
-    security_groups  = [aws_security_group.ecs_service.id]
+    security_groups  = [var.app_sg_id]
     assign_public_ip = true
   }
 
@@ -125,4 +119,3 @@ resource "aws_ecs_service" "main" {
     Project     = var.project_name
   }
 }
-

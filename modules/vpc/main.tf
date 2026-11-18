@@ -76,3 +76,32 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
+# 6. ECS Application Security Group (allows inbound traffic on container_port from anywhere)
+resource "aws_security_group" "app" {
+  name        = "${var.project_name}-${var.environment}-app-sg"
+  description = "Security group for ECS tasks allowing inbound traffic on container port"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "Allow inbound traffic on container port from anywhere"
+    from_port   = var.container_port
+    to_port     = var.container_port
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "Allow all outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-app-sg"
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+

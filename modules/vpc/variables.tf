@@ -12,6 +12,12 @@ variable "environment" {
   type        = string
 }
 
+variable "container_port" {
+  description = "Port exposed by the ECS container for the security group inbound rule"
+  type        = number
+  default     = 5000
+}
+
 variable "project_name" {
   description = "Project name used for naming and tagging resources"
   type        = string

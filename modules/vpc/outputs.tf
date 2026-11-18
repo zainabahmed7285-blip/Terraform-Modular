@@ -12,3 +12,8 @@ output "subnet_ids" {
   value       = aws_subnet.public[*].id
 }
 
+output "app_sg_id" {
+  description = "The ID of the security group for the ECS application"
+  value       = aws_security_group.app.id
+}
+
